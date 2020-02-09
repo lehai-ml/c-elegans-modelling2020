@@ -5,6 +5,7 @@ import sympy as sp
 from sympy.solvers import solve
 from sympy import symbols, Eq
 from IPython.display import display, Math, Latex
+from scipy.integrate import odeint
 
 def normalize_by_highest_wildtype_mean(by_15C):
     """
@@ -389,6 +390,8 @@ class Model:
         for i in new_model:
             self.model[i]=Neuron(new_model[i],i,df_temp_food)            
         self.df_temp_food=df_temp_food
+        self.DA_table=self.DA_table_across_food_level()
+        self.TA_TN_table=self.TA_TN_table_across_food_levels()
     
     # def model_interactions(self): 
     #     #display model interactions in form of table side by side
@@ -423,3 +426,108 @@ class Model:
                     TA_TN_pd.loc[n,str(x)]=i[n][x]
       
         return TA_TN_pd
+    
+    def simulation_in_tph1mut(self,Y0,t,food):
+        model=self.model
+        df_temp_food=self.df_temp_food
+        df_temp_food=df_temp_food[df_temp_food['Food']==food]
+        diff_equation=dict()
+        for i in model:
+            diff_equation[i]=model[i].write_equation()
+        NSM=Y0[0]
+        ASI=Y0[1]
+        ADF=Y0[2]
+        DAnsm=np.array(self.DA_table['DAnsm'][self.DA_table['Food']==food],
+                       dtype='float64')
+        DAadf=np.array(self.DA_table['DAadf'][self.DA_table['Food']==food],
+                       dtype='float64')
+        DAasi=np.array(self.DA_table['DAasi'][self.DA_table['Food']==food],
+                       dtype='float64')
+        Snsm=np.array(df_temp_food['NSM'][df_temp_food['genotype']=='doublemut'])
+        Sasi=np.array(df_temp_food['ASI'][df_temp_food['genotype']=='doublemut'])
+        Sadf=np.array(df_temp_food['ADF'][df_temp_food['genotype']=='doublemut'])
+        TAnsm=TAadf=TAasi=0
+        TNnsm=TNadf=TNasi=0
+        alpha=1
+        dNSMdt=eval(diff_equation['nsm'])
+        dADFdt=eval(diff_equation['adf'])
+        dASIdt=eval(diff_equation['asi'])
+        return np.asarray([dNSMdt,dADFdt,dASIdt]).reshape(-1)
+    
+    def simulation_in_daf_7mut(self,Y0,t,food):
+        model=self.model
+        df_temp_food=self.df_temp_food
+        df_temp_food=df_temp_food[df_temp_food['Food']==food]
+        diff_equation=dict()
+        for i in model:
+            diff_equation[i]=model[i].write_equation()
+        NSM=Y0[0]
+        ASI=Y0[1]
+        ADF=Y0[2]
+        DAnsm=DAadf=DAasi=0
+        Snsm=np.array(df_temp_food['NSM'][df_temp_food['genotype']=='doublemut'])
+        Sasi=np.array(df_temp_food['ASI'][df_temp_food['genotype']=='doublemut'])
+        Sadf=np.array(df_temp_food['ADF'][df_temp_food['genotype']=='doublemut'])
+        
+        TAnsm=np.array(self.TA_TN_table['TAnsm'][self.TA_TN_table['Food']==food],dtype='float64')
+        TAadf=np.array(self.TA_TN_table['TAadf'][self.TA_TN_table['Food']==food],dtype='float64')
+        TAasi=np.array(self.TA_TN_table['TAasi'][self.TA_TN_table['Food']==food],dtype='float64')
+        TNnsm=np.array(self.TA_TN_table['TNnsm'][self.TA_TN_table['Food']==food],dtype='float64')
+        TNadf=np.array(self.TA_TN_table['TNadf'][self.TA_TN_table['Food']==food],dtype='float64')
+        TNasi=np.array(self.TA_TN_table['TNasi'][self.TA_TN_table['Food']==food],dtype='float64')
+        
+        alpha=1
+        dNSMdt=eval(diff_equation['nsm'])
+        dADFdt=eval(diff_equation['adf'])
+        dASIdt=eval(diff_equation['asi'])
+        
+        return np.asarray([dNSMdt,dADFdt,dASIdt]).reshape(-1)
+    
+    def simulation_in_WT(self,Y0,t,food):
+        model=self.model
+        df_temp_food=self.df_temp_food
+        df_temp_food=df_temp_food[df_temp_food['Food']==food]
+        diff_equation=dict()
+        for i in model:
+            diff_equation[i]=model[i].write_equation()
+        NSM=Y0[0]
+        ASI=Y0[1]
+        ADF=Y0[2]
+        DAnsm=np.array(self.DA_table['DAnsm'][self.DA_table['Food']==food],
+                       dtype='float64')
+        DAadf=np.array(self.DA_table['DAadf'][self.DA_table['Food']==food],
+                       dtype='float64')
+        DAasi=np.array(self.DA_table['DAasi'][self.DA_table['Food']==food],
+                       dtype='float64')
+        Snsm=np.array(df_temp_food['NSM'][df_temp_food['genotype']=='doublemut'])
+        Sasi=np.array(df_temp_food['ASI'][df_temp_food['genotype']=='doublemut'])
+        Sadf=np.array(df_temp_food['ADF'][df_temp_food['genotype']=='doublemut'])
+        
+        TAnsm=np.array(self.TA_TN_table['TAnsm'][self.TA_TN_table['Food']==food],dtype='float64')
+        TAadf=np.array(self.TA_TN_table['TAadf'][self.TA_TN_table['Food']==food],dtype='float64')
+        TAasi=np.array(self.TA_TN_table['TAasi'][self.TA_TN_table['Food']==food],dtype='float64')
+        TNnsm=np.array(self.TA_TN_table['TNnsm'][self.TA_TN_table['Food']==food],dtype='float64')
+        TNadf=np.array(self.TA_TN_table['TNadf'][self.TA_TN_table['Food']==food],dtype='float64')
+        TNasi=np.array(self.TA_TN_table['TNasi'][self.TA_TN_table['Food']==food],dtype='float64')
+        
+        alpha=1
+        dNSMdt=eval(diff_equation['nsm'])
+        dADFdt=eval(diff_equation['adf'])
+        dASIdt=eval(diff_equation['asi'])
+        
+        return np.asarray([dNSMdt,dADFdt,dASIdt]).reshape(-1)
+        
+        
+    
+    
+        
+        
+        
+        
+        
+                      
+            
+            
+            
+            
+        
