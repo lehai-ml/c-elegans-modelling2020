@@ -4,7 +4,7 @@ Given fluorescence level of 2 genes (tph-1 and daf-7) in 3 neurons across 6 diff
 ## Materials and methods
 dataset.xlsx- supplementary information from [Entchev et al., 2015](https://elifesciences.org/articles/06259)
 
-Script requires sympy, numpy, pandas, and matplotlib
+Script requires sympy, numpy, pandas, matplotlib and scipy.
 ## Updates
 **10.02.2020- (See elegansfunc.py and main notebook)**
 * (See simulation_in_tph1mut/daf7/WT)- updated simulation function. Utilizes scipy.integrate.odeint library
