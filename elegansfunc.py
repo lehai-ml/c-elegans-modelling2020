@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import sympy as sp
 from sympy.solvers import solve
 from sympy import symbols, Eq
-from IPython.display import display, Math, Latex
+from IPython.display import display, Math, Latex,display_html
 from scipy.integrate import odeint
 
 def normalize_by_highest_wildtype_mean(by_15C):
@@ -31,48 +31,13 @@ def normalize_by_highest_wildtype_mean(by_15C):
 
 ### Visualizing the previous data
 
-# def ax_plot(ax,normalized_dataset,neuron):
-"""
-Plot my current datasets.
-"""
-#     ax.plot(normalized_dataset[normalized_dataset['genotype']=='wildtype']['Food'], 
-#             normalized_dataset[normalized_dataset['genotype']=='wildtype'][neuron],'kx-',label='wildtype')
-#     ax.plot(normalized_dataset[normalized_dataset['genotype']=='tph1mut']['Food'], 
-#             normalized_dataset[normalized_dataset['genotype']=='tph1mut'][neuron],'bx-',label='tph1-/-')
-#     ax.plot(normalized_dataset[normalized_dataset['genotype']=='daf7mut']['Food'], 
-#             normalized_dataset[normalized_dataset['genotype']=='daf7mut'][neuron],'rx-',label='daf7-/-')
-#     ax.plot(normalized_dataset[normalized_dataset['genotype']=='doublemut']['Food'], 
-#             normalized_dataset[normalized_dataset['genotype']=='doublemut'][neuron],'mx-',label='double-/-')
-#     ax.plot(np.linspace(1e0,10e10,6),np.repeat(1,6),'c--')    
-
-# f,axes=plt.subplots(3,3,sharey=True,sharex=True,figsize=(15,10))
-# neuron=['NSM','ADF','ASI']
-# normalized_datasets=(normalize_by_highest_wildtype_mean(by_15C),
-#                     normalize_by_highest_wildtype_mean(by_20C),
-#                     normalize_by_highest_wildtype_mean(by_25C))
-# temp=['15','20','25']
-# for row in range(3):
-#     for column in range(3):
-#         ax=axes[row,column]
-#         ax_plot(ax,normalized_datasets[row],neuron[column])
-#         ax.set_xscale('log')
-#         ax.set_xticks([1e0,1e2,1e4,1e6,1e8,1e10])
-#         ax.set_xticklabels(['$10^0$','$10^2$','$10^4$','$10^6$','$10^8$','$10^10$'])
-#         ax.set_yticks(np.linspace(0.5,1.5,11))
-#         ax.tick_params(top=True,right=True,direction='in')
-#         if row==0:
-#             ax.set_title(neuron[column],fontdict={'fontsize':20})
-#         if column==0:
-#             ax.set_ylabel(temp[row]+'$^\circ$'+'C',fontsize=18)
-#         if ax==axes[2,2]:
-#             handles, labels = ax.get_legend_handles_labels()
-            
-# f.legend(handles, labels, loc='lower center',mode='expand',ncol=4,bbox_to_anchor=(0.24,0,0.5,0),
-#          labelspacing=1.2,columnspacing=5,fontsize='x-large',frameon=False)
-# f.text(0.5, 0.06, 'Food Levels (cells/ml)', ha='center',size='xx-large')
-# f.text(0.05, 0.5, 'Normalised Fluorescent Expression AU', va='center', rotation='vertical',size='xx-large')
-# f.suptitle('Normalized Fluorescent Expression by Food Level across temperature and neurons',size='xx-large')
-# plt.show()
+def ax_plot(ax,normalized_dataset,neuron):
+    """Plot my dataset"""
+    ax.plot(normalized_dataset[normalized_dataset['genotype']=='wildtype']['Food'], normalized_dataset[normalized_dataset['genotype']=='wildtype'][neuron],'kx-',label='wildtype')
+    ax.plot(normalized_dataset[normalized_dataset['genotype']=='tph1mut']['Food'], normalized_dataset[normalized_dataset['genotype']=='tph1mut'][neuron],'bx-',label='tph1-/-')
+    ax.plot(normalized_dataset[normalized_dataset['genotype']=='daf7mut']['Food'], normalized_dataset[normalized_dataset['genotype']=='daf7mut'][neuron],'rx-',label='daf7-/-')
+    ax.plot(normalized_dataset[normalized_dataset['genotype']=='doublemut']['Food'], normalized_dataset[normalized_dataset['genotype']=='doublemut'][neuron],'mx-',label='double-/-')
+    ax.plot(np.linspace(1e0,10e10,6),np.repeat(1,6),'c--')
 
 def define_model_interactions(neuron_label,
                              TA2TA=0,TA2TN=0,TA2DA=0,TA2S=0,
@@ -393,13 +358,13 @@ class Model:
         self.DA_table=self.DA_table_across_food_level()
         self.TA_TN_table=self.TA_TN_table_across_food_levels()
     
-    # def model_interactions(self): 
-    #     #display model interactions in form of table side by side
-    #     html_str=''
-    #     for i in self.model:
-    #         df=self.model[i].neuron
-    #         html_str+=df.to_html()
-    #     display_html(html_str.replace('table','table style="display:inline"'),raw=True)
+    def model_interactions(self): 
+        #display model interactions in form of table side by side
+        html_str=''
+        for i in self.model:
+            df=self.model[i].neuron
+            html_str+=df.to_html()
+        display_html(html_str.replace('table','table style="display:inline"'),raw=True)
 
     def DA_table_across_food_level(self,round_number=False,number=3): 
         #call Neuron.find DA_at_food_level for all neurons in the model dict.
@@ -427,16 +392,11 @@ class Model:
       
         return TA_TN_pd
     
-    def simulation_in_tph1mut(self,Y0,t,food):
+    def simulation_in_tph1mut(self,Y0,t,food,equation):
         model=self.model
         df_temp_food=self.df_temp_food
         df_temp_food=df_temp_food[df_temp_food['Food']==food]
-        diff_equation=dict()
-        for i in model:
-            diff_equation[i]=model[i].write_equation()
-        NSM=Y0[0]
-        ASI=Y0[1]
-        ADF=Y0[2]
+        NSM=ASI=ADF=Y0
         DAnsm=np.array(self.DA_table['DAnsm'][self.DA_table['Food']==food],
                        dtype='float64')
         DAadf=np.array(self.DA_table['DAadf'][self.DA_table['Food']==food],
@@ -449,21 +409,13 @@ class Model:
         TAnsm=TAadf=TAasi=0
         TNnsm=TNadf=TNasi=0
         alpha=1
-        dNSMdt=eval(diff_equation['nsm'])
-        dADFdt=eval(diff_equation['adf'])
-        dASIdt=eval(diff_equation['asi'])
-        return np.asarray([dNSMdt,dADFdt,dASIdt]).reshape(-1)
+        return eval(equation)
     
-    def simulation_in_daf_7mut(self,Y0,t,food):
+    def simulation_in_daf_7mut(self,Y0,t,food,equation):
         model=self.model
         df_temp_food=self.df_temp_food
         df_temp_food=df_temp_food[df_temp_food['Food']==food]
-        diff_equation=dict()
-        for i in model:
-            diff_equation[i]=model[i].write_equation()
-        NSM=Y0[0]
-        ASI=Y0[1]
-        ADF=Y0[2]
+        NSM=ASI=ADF=Y0
         DAnsm=DAadf=DAasi=0
         Snsm=np.array(df_temp_food['NSM'][df_temp_food['genotype']=='doublemut'])
         Sasi=np.array(df_temp_food['ASI'][df_temp_food['genotype']=='doublemut'])
@@ -477,22 +429,14 @@ class Model:
         TNasi=np.array(self.TA_TN_table['TNasi'][self.TA_TN_table['Food']==food],dtype='float64')
         
         alpha=1
-        dNSMdt=eval(diff_equation['nsm'])
-        dADFdt=eval(diff_equation['adf'])
-        dASIdt=eval(diff_equation['asi'])
         
-        return np.asarray([dNSMdt,dADFdt,dASIdt]).reshape(-1)
+        return eval(equation)
     
-    def simulation_in_WT(self,Y0,t,food):
+    def simulation_in_WT(self,Y0,t,food,equation):
         model=self.model
         df_temp_food=self.df_temp_food
         df_temp_food=df_temp_food[df_temp_food['Food']==food]
-        diff_equation=dict()
-        for i in model:
-            diff_equation[i]=model[i].write_equation()
-        NSM=Y0[0]
-        ASI=Y0[1]
-        ADF=Y0[2]
+        NSM=ASI=ADF=Y0
         DAnsm=np.array(self.DA_table['DAnsm'][self.DA_table['Food']==food],
                        dtype='float64')
         DAadf=np.array(self.DA_table['DAadf'][self.DA_table['Food']==food],
@@ -511,11 +455,8 @@ class Model:
         TNasi=np.array(self.TA_TN_table['TNasi'][self.TA_TN_table['Food']==food],dtype='float64')
         
         alpha=1
-        dNSMdt=eval(diff_equation['nsm'])
-        dADFdt=eval(diff_equation['adf'])
-        dASIdt=eval(diff_equation['asi'])
         
-        return np.asarray([dNSMdt,dADFdt,dASIdt]).reshape(-1)
+        return eval(equation)
         
         
     
