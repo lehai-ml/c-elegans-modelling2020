@@ -6,6 +6,9 @@ dataset.xlsx- supplementary information from [Entchev et al., 2015](https://elif
 
 Script requires sympy, numpy, pandas, and matplotlib
 ## Updates
+**10.02.2020- (See elegansfunc.py and main notebook)**
+* (See simulation_in_tph1mut/daf7/WT)- updated simulation function. Utilizes scipy.integrate.odeint library
+
 **07.02.2020- (See elegansfunc.py)**
 * (See define_model_interactions and write_equation )Hard-coded calculation of DA, TA and TN for any given model interactions. Models are restricted to 3 neurons. An examined neuron can receive up to 3 DIRECT connections to its cell body (i.e. 2 from the other 2 unexamined neurons, and 1 self-regulatory(i.e. from itself)). The self-regulatory can receive 1 further connections from each of the other two cells. The other 2 DIRECT connections can receive 1 more connection each from the opposite cell (not examined one).
 * (See write_equation) From these defined interactions, for each neuron is generated a differential equation.
