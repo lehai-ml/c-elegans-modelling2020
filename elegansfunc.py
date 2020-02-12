@@ -6,6 +6,7 @@ from sympy.solvers import solve
 from sympy import symbols, Eq
 from IPython.display import display, Math, Latex,display_html
 from scipy.integrate import odeint
+import particleswarmop as PSO
 
 def normalize_by_highest_wildtype_mean(by_15C):
     """
@@ -225,8 +226,50 @@ class Neuron:
             return solution
         else:
             return solution[0][X]
+    
+    
+    # def find_TA_TN_in_WT(self,food,alpha=1,target=0,n_particles=10,target_error=10e-6): #this is for using with PSO function./ Remember to change the output of the MODEL class accordingly.
+    #     neuron=self.neuron
+    #     neuron_label=self.neuron_label
+    #     df_temp_food=self.df_temp_food
+    #     df_temp_food=df_temp_food[df_temp_food['Food']==food]
+        
+    #     Snsm=np.array(df_temp_food['NSM'][df_temp_food['genotype']=='doublemut'])
+    #     Sasi=np.array(df_temp_food['ASI'][df_temp_food['genotype']=='doublemut'])
+    #     Sadf=np.array(df_temp_food['ADF'][df_temp_food['genotype']=='doublemut'])
+    #     NSM=np.array(df_temp_food['NSM'][df_temp_food['genotype']=='wildtype'])
+    #     ASI=np.array(df_temp_food['ASI'][df_temp_food['genotype']=='wildtype'])
+    #     ADF=np.array(df_temp_food['ADF'][df_temp_food['genotype']=='wildtype'])
+        
+    #     equation=self.write_equation()
+    #     equation=equation.replace('TA'+neuron_label,'TA')
+    #     equation=equation.replace('TN'+neuron_label,'TN')
+    #     equation=equation.replace('DA'+neuron_label,'DA')
+        
+    #     DA=self.find_DA_at_food_level(food)
+        
+    #     search_space=PSO.Space(target,target_error,n_particles,equation,Snsm,Sasi,Sadf,NSM,ASI,ADF,DA)
+        
+    #     particles_vector = [PSO.Particle() for _ in range(search_space.n_particles)]
+    #     search_space.particles = particles_vector
+    #     iteration = 0
+    #     n_iterations=100
+    #     while(iteration < n_iterations):
+    #         search_space.set_pbest()    
+    #         search_space.set_gbest()
 
+    #         if(abs(search_space.gbest_value - search_space.target) <= search_space.target_error):
+    #             break
 
+    #         search_space.move_particles()
+    #         iteration += 1
+            
+    #     print("The best solution is: ", search_space.gbest_position," in n_iterations: ", iteration,'and fitness equals',search_space.gbest_value)
+            
+    #     solution=dict()
+    #     solution['TA'+neuron_label]=search_space.gbest_position[0]
+    #     solution['TN'+neuron_label]=search_space.gbest_position[1]
+    #     return solution
     def find_TA_TN_in_daf7mut(self,food,alpha=1):
         """
         in WT and daf7 mut
@@ -343,7 +386,7 @@ class Neuron:
             hi_mean=np.argmax([np.mean(list(i.values())) for i in solutions])
             solutions=solutions[hi_mean]##this will ensure all output will be dict    
         return solutions
-    
+
 class Model:
     """
     save all defined neurons together (max 3).
@@ -391,6 +434,19 @@ class Model:
                     TA_TN_pd.loc[n,str(x)]=i[n][x]
       
         return TA_TN_pd
+    # def TA_TN_table_across_food_levels(self):
+    #     solutions=[]
+        
+    #     for i in self.model:
+    #         solutions.append([self.model[i].find_TA_TN_in_WT(n) for n in np.unique(self.df_temp_food['Food'])])
+    #     TA_TN_pd=pd.DataFrame({'Food':np.unique(self.df_temp_food['Food']),
+    #                             'TAnsm':np.zeros(6),'TAadf':np.zeros(6),'TAasi':np.zeros(6),'TNnsm':np.zeros(6),'TNadf':np.zeros(6),'TNasi':np.zeros(6)})
+    #     for i in solutions:
+    #         for n in range(6):
+    #             for x in list(i[n].keys()):
+    #                 TA_TN_pd.loc[n,str(x)]=i[n][x]
+        
+    #     return TA_TN_pd
     
     def simulation_in_tph1mut(self,Y0,t,food,equation):
         model=self.model
@@ -457,8 +513,8 @@ class Model:
         alpha=1
         
         return eval(equation)
-        
-        
+    
+       
     
     
         
