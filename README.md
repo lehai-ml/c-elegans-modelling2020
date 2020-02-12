@@ -8,6 +8,7 @@ Script requires sympy, numpy, pandas, matplotlib and scipy.
 ## Updates
 **12.02.2020- (See particleswarmop.py)**
 * Attempted the particle swarm optimzation for parameter search. But it did not seems to work as well as existing sympy implementation. For now opted without PSO.
+
 **10.02.2020- (See elegansfunc.py and main notebook)**
 * (See simulation_in_tph1mut/daf7/WT)- updated simulation function. Utilizes scipy.integrate.odeint library
 
