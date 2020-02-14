@@ -527,7 +527,7 @@ class Model:
         simulated_table['Food']=simulated_table['Food'].astype('int64')
         return simulated_table
 
-    def simulate_all_together(self,Y0=1,t=np.linspace(0,30,100)):
+    def simulate_all_together(self,Y0=1,t=np.linspace(0,30,100),compare=False):
         simulated=dict()
         genotypes=['wildtype','tph1mut','daf7mut']
         for genotype in genotypes:
@@ -545,26 +545,8 @@ class Model:
         experimental['type']=['experimental']*len(experimental['Food'])
         experimental=experimental[experimental['genotype']!='doublemut']
         mse_score=np.mean((np.array(experimental[['ADF','NSM','ASI']])-np.array(simulation[['ADF','NSM','ASI']]))**2)
-        return (simulation, experimental, mse_score)
-        
-        
-    
-    
-
-        
-    
-    
-       
-    
-    
-        
-        
-        
-        
-        
-                      
-            
-            
-            
-            
+        if compare==True:
+            return mse_score
+        else:
+            return (simulation, experimental, mse_score)
         
