@@ -49,24 +49,29 @@ class Particle:
         self.position=self.position+self.velocity
 
 class Space:
-    def __init__(self,target, target_error,n_particles,equation,Snsm,Sasi,Sadf,NSM,ASI,ADF,DA):
+    def __init__(self,target, target_error,n_particles,equation_daf7,equation_WT,Snsm,Sasi,Sadf,NSM_WT,NSM_daf7,ASI_WT,ASI_daf7,ADF_WT,ADF_daf7,DA_WT,DA_daf7):
         self.target=target
         self.target_error=target_error
         self.n_particles=n_particles
         self.particles=[]
         self.gbest_value=float('inf')
         self.gbest_position=np.random.rand(2)
-        self.equation=equation
+        self.equation_WT=equation_WT
+        self.equation_daf7=equation_daf7
         self.W=0.5
         self.c1=0.8
         self.c2=0.9
         self.Snsm=Snsm
         self.Sasi=Sasi
         self.Sadf=Sadf
-        self.NSM=NSM
-        self.ASI=ASI
-        self.ADF=ADF
-        self.DA=DA
+        self.NSM_WT=NSM_WT
+        self.NSM_daf7=NSM_daf7
+        self.ASI_WT=ASI_WT
+        self.ASI_daf7=ASI_daf7
+        self.ADF_WT=ADF_WT
+        self.ADF_daf7=ADF_daf7
+        self.DA_WT=DA_WT
+        self.DA_daf7=DA_daf7
     
     def print_particles(self):
         for particle in self.particles:
@@ -77,14 +82,19 @@ class Space:
         Snsm=self.Snsm
         Sasi=self.Sasi
         Sadf=self.Sadf
-        NSM=self.NSM
-        ASI=self.ASI
-        ADF=self.ADF
-        DA=self.DA
+        NSM_WT=self.NSM_WT
+        NSM_daf7=self.NSM_daf7
+        ASI_WT=self.ASI_WT
+        ASI_daf7=self.ASI_daf7
+        ADF_WT=self.ADF_WT
+        ADF_daf7=self.ADF_daf7
+        DA_WT=self.DA_WT
+        DA_daf7=self.DA_daf7
         alpha=1
         TA=particle.position[0]
         TN=particle.position[1]
-        return eval(self.equation)
+        combined_equation=eval(self.equation_WT)**2+eval(self.equation_daf7)**2
+        return combined_equation
     
     def set_pbest(self):
         for particle in self.particles:
