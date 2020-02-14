@@ -509,6 +509,51 @@ class Model:
         
         return eval(equation)
     
+    def simulated_table(self,simulated):
+        temperature=np.unique(self.df_temp_food['temperature'])[0]
+        simulated_table=pd.DataFrame({'temperature':[],
+                                      'Food':[],'ADF':[],'NSM':[],'ASI':[],'genotype':[],'type':[]})
+        for genotype in simulated:
+            temp=pd.DataFrame({'temperature':[],
+            'Food':[],'ADF':[],'NSM':[],'ASI':[],'genotype':[]})
+            temp['temperature']=[temperature]*6
+            temp['genotype']=[genotype]*6
+            temp['Food']=np.unique(self.df_temp_food['Food']).astype('int64')
+            temp['ADF']=simulated[genotype]['adf']
+            temp['NSM']=simulated[genotype]['nsm']
+            temp['ASI']=simulated[genotype]['asi']
+            temp['type']=['simulated']*6
+            simulated_table=pd.concat([simulated_table,temp])
+        simulated_table['Food']=simulated_table['Food'].astype('int64')
+        return simulated_table
+
+    def simulate_all_together(self,Y0=1,t=np.linspace(0,30,100)):
+        simulated=dict()
+        genotypes=['wildtype','tph1mut','daf7mut']
+        for genotype in genotypes:
+            simulated[genotype]=dict()
+            for neuron in ['nsm','asi','adf']:
+                if genotype=='tph1mut':
+                    simulated[genotype][neuron]=[odeint(self.simulation_in_tph1mut,Y0,t,args=(i,self.model[neuron].write_equation()))[-1][0] for i in np.unique(self.df_temp_food['Food'])]
+                elif genotype=='daf7mut':
+                    simulated[genotype][neuron]=[odeint(self.simulation_in_daf_7mut,Y0,np.linspace(0,30,100),args=(i,self.model[neuron].write_equation()))[-1][0] for i in np.unique(self.df_temp_food['Food'])]
+                elif genotype=='wildtype':
+                    simulated[genotype][neuron]=[odeint(self.simulation_in_WT,Y0,np.linspace(0,30,100),args=(i,self.model[neuron].write_equation()))[-1][0] for i in np.unique(self.df_temp_food['Food'])]
+            print('finished w 1 genotype')
+        simulation=self.simulated_table(simulated)
+        experimental=self.df_temp_food.copy()
+        experimental['type']=['experimental']*len(experimental['Food'])
+        experimental=experimental[experimental['genotype']!='doublemut']
+        mse_score=np.mean((np.array(experimental[['ADF','NSM','ASI']])-np.array(simulation[['ADF','NSM','ASI']]))**2)
+        return (simulation, experimental, mse_score)
+        
+        
+    
+    
+
+        
+    
+    
        
     
     
