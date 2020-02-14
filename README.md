@@ -6,6 +6,9 @@ dataset.xlsx- supplementary information from [Entchev et al., 2015](https://elif
 
 Script requires sympy, numpy, pandas, matplotlib and scipy.
 ## Updates
+**15.02.2020- (See genetic_algorithm.py)**
+*Implemented Genetic Algorithm to identify the best model based on mean score error.
+
 **14.02.2020- (See particleswarmop.py)**
 * Implemented Particle Swarm Optimization. It seems to work well, although takes almost double time to compute compared with sympy library (although we could decrease the n_iteration and increase target_error). The advantage is that we have more control over the parameter search.
 Mean squared error on both methods appear to be very similar (PSO : sympy= 0.029 : 0.031, on Version1 with n_iteration=100, and target_error=10e-6)
