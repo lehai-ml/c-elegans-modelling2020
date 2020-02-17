@@ -7,6 +7,7 @@ from sympy import symbols, Eq
 from IPython.display import display, Math, Latex,display_html
 from scipy.integrate import odeint
 import particleswarmop as PSO
+import particleswarmop_forDA as PSO_DA
 
 def normalize_by_highest_wildtype_mean(by_15C):
     """
@@ -163,10 +164,7 @@ class Neuron:
         ###build term by term:
         #term Snsm:
 
-        denominator_of_S=[]
-        for i in list(indirect_inhibition_to_inhibitory_interactions_to_cell.keys()):
-            term='/'.join([i,list(indirect_inhibition_to_inhibitory_interactions_to_cell.values())[0]])
-            denominator_of_S.append(term)
+        denominator_of_S=['/'.join([key,value]) for key,value in indirect_inhibition_to_inhibitory_interactions_to_cell.items()]
         for i in indirect_activation_to_inhibitory_interactions_to_cell:
             denominator_of_S.append(i)
         if denominator_of_S==[]:
@@ -176,10 +174,7 @@ class Neuron:
         S_term=['/'.join(['S{}'.format(neuron_label)]+denominator_of_S)]
 
         ##term for direct activation of S:
-        direct_activation_term=[]
-        for i in list(indirect_inhibition_to_activatory_interactions_to_cell.keys()):
-            term='/'.join([i,list(indirect_inhibition_to_activatory_interactions_to_cell.values())[0]])
-            direct_activation_term.append(term)
+        direct_activation_term=['/'.join([key,value]) for key,value in indirect_inhibition_to_activatory_interactions_to_cell.items()]
         for i in indirect_activation_to_activatory_interactions_to_cell:
             direct_activation_term.append(i)
         direct_activation_term=['+'.join(direct_activation_term)]
@@ -192,15 +187,7 @@ class Neuron:
         else:
             return equation
     
-    def find_DA_at_food_level(self,food,alpha=1): 
-        """
-        Find DA values at defined food level from double mutants and tph-1 mutants.
-        Evaluate from previous write_equation function necessary symbols, and solve using sympy.
-        alpha=1 default.
-        
-        Important: If there are no DA defined, or no solution for DA is found, solution=0. Shouldn't matter because denominator will never be 0.
-        """
-        
+    def find_DA_using_PSO_DA(self,food,alpha=1,target=0,n_particles=10,target_error=10e-6,verbose=False): 
         neuron=self.neuron
         neuron_label=self.neuron_label
         df_temp_food=self.df_temp_food
@@ -218,17 +205,74 @@ class Neuron:
         ASI=np.array(df_temp_food['ASI'][df_temp_food['genotype']=='tph1mut'])
         ADF=np.array(df_temp_food['ADF'][df_temp_food['genotype']=='tph1mut'])
         
-        X=symbols('X')
+        equation=self.write_equation().replace('DA'+neuron_label,'DA')
+        
+        
+        search_space=PSO_DA.Space(target,target_error,n_particles,equation_tph1mut=equation,Snsm=Snsm,Sasi=Sasi,Sadf=Sadf,NSM=NSM,ASI=ASI,ADF=ADF)
+        
+        particles_vector = [PSO_DA.Particle() for _ in range(search_space.n_particles)]
+        search_space.particles = particles_vector
+        iteration = 0
+        n_iterations=100
+        while(iteration < n_iterations):
+            search_space.set_pbest()    
+            search_space.set_gbest()
+
+            if(abs(search_space.gbest_value - search_space.target) <= search_space.target_error):
+                break
+
+            search_space.move_particles()
+            iteration += 1
+        if (verbose==True):
+            print("The best solution is: ", search_space.gbest_position," in n_iterations: ", iteration,'and fitness equals',search_space.gbest_value)
+            
+        solution=search_space.gbest_position[0]
+        return solution
+    
+    def find_DA_at_food_level(self,food,alpha=1,verbose=False):
+        """
+        Find DA values at defined food level from double mutants and tph-1 mutants.
+        Evaluate from previous write_equation function necessary symbols, and solve using sympy.
+        alpha=1 default.
+        
+        Important: If there are no DA defined, or no solution for DA is found, solution=0. Shouldn't matter because denominator will never be 0.
+        """
+        neuron=self.neuron
+        neuron_label=self.neuron_label
+        df_temp_food=self.df_temp_food
+        df_temp_food=df_temp_food[df_temp_food['Food']==food]
+        
+        Snsm,Sasi,Sadf,NSM,ASI,ADF=symbols('Snsm Sasi Sadf NSM ASI ADF')
+        TAnsm,TAadf,TAasi=symbols('TAnsm TAadf TAasi')
+        TNnsm,TNadf,TNasi=symbols('TNnsm TNadf TNasi')
+        alpha=symbols('alpha')
+        
         equation_to_solve=self.write_equation().replace('DA'+neuron_label,'X')
-        solution=solve(eval(equation_to_solve),X,dict=True)
-        if solution==[]:
+        X=symbols('X',real=True)
+        equation=Eq(eval(equation_to_solve))
+        solution=sp.solve(equation.subs({Snsm:np.array(df_temp_food['NSM'][df_temp_food['genotype']=='doublemut']),
+                                         Sasi:np.array(df_temp_food['ASI'][df_temp_food['genotype']=='doublemut']),
+                                         Sadf:np.array(df_temp_food['ADF'][df_temp_food['genotype']=='doublemut']),
+                                         NSM:np.array(df_temp_food['NSM'][df_temp_food['genotype']=='tph1mut']),
+                                         ASI:np.array(df_temp_food['ASI'][df_temp_food['genotype']=='tph1mut']),
+                                         ADF:np.array(df_temp_food['ADF'][df_temp_food['genotype']=='tph1mut']),
+                                         TAnsm:0,TAadf:0,TAasi:0,TNnsm:0,TNadf:0,TNasi:0,
+                                         alpha:1}),X,dict=True)
+        
+        if solution==False:
             solution=0
-            return solution
+        #Because there is no DA activity present
+        elif solution==[]:
+            print('no real solution, using PSO instead')
+            solution=self.find_DA_using_PSO_DA(food=food,verbose=verbose)
+        #Because there is no real solution for DA
         else:
-            return solution[0][X]
+            solution=solution[0][X]
+        return solution
+        
+        
     
-    
-    def find_TA_TN_using_PSO(self,food,alpha=1,target=0,n_particles=10,target_error=10e-6): #this is for using with PSO function./ Remember to change the output of the MODEL class accordingly.
+    def find_TA_TN_using_PSO(self,food,alpha=1,target=0,n_particles=10,target_error=10e-6,verbose=False): #this is for using with PSO function./ Remember to change the output of the MODEL class accordingly.
         neuron=self.neuron
         neuron_label=self.neuron_label
         df_temp_food=self.df_temp_food
@@ -266,8 +310,9 @@ class Neuron:
 
             search_space.move_particles()
             iteration += 1
-            
-        print("The best solution is: ", search_space.gbest_position," in n_iterations: ", iteration,'and fitness equals',search_space.gbest_value)
+        
+        if verbose==True:    
+            print("The best solution is: ", search_space.gbest_position," in n_iterations: ", iteration,'and fitness equals',search_space.gbest_value)
             
         solution=dict()
         solution['TA'+neuron_label]=search_space.gbest_position[0]
@@ -293,8 +338,8 @@ class Neuron:
         TNnsm,TNadf,TNasi=symbols('TNnsm TNadf TNasi')
         alpha=symbols('alpha')
         
-        X1=symbols('TA'+neuron_label)
-        X2=symbols('TN'+neuron_label)
+        X1=symbols('TA'+neuron_label,real=True)
+        X2=symbols('TN'+neuron_label,real=True)
         
         
         equation_to_solve=self.write_equation()
@@ -325,8 +370,8 @@ class Neuron:
         TNnsm,TNadf,TNasi=symbols('TNnsm TNadf TNasi')
         alpha=symbols('alpha')
         
-        X1=symbols('TA'+neuron_label)
-        X2=symbols('TN'+neuron_label)
+        X1=symbols('TA'+neuron_label,real=True)
+        X2=symbols('TN'+neuron_label,real=True)
         
         equation_to_solve=self.write_equation()
         equation=Eq(eval(equation_to_solve))
@@ -346,7 +391,7 @@ class Neuron:
         return TA_TN_WT
     
     
-    def systems_of_equations(self,food,alpha=1):
+    def systems_of_equations(self,food,alpha=1,verbose=False):
         """
         Use the TA_TN_WT/daf_7mut equations and solve them as systems of equations (could be linear or non-linear).
         **see help(find_TA_TN_in_daf7mut)**
@@ -363,13 +408,16 @@ class Neuron:
         TA_TN_daf7mut=self.find_TA_TN_in_daf7mut(food,alpha=1)
         TA_TN_WT=self.find_TA_TN_in_WT(food,alpha=1)
         
-        X1=symbols('TA'+neuron_label)
-        X2=symbols('TN'+neuron_label)
+        X1=symbols('TA'+neuron_label,real=True)
+        X2=symbols('TN'+neuron_label,real=True)
         
         if (TA_TN_daf7mut==False or TA_TN_WT==False):
             solutions=dict({'TA'+neuron_label:0,
                             'TN'+neuron_label:0})
             ##In case there is no solution due to no TA or TN, set those value to 0
+        elif (TA_TN_daf7mut==[] or TA_TN_WT==[]):
+            solutions=self.find_TA_TN_using_PSO(food=food,verbose=verbose)
+            ## In case there is no solution because of not real numbers, try to find using PSO
         else:
             daf_7_equation=[Eq(TA_TN_daf7mut[0][i]-i) for i in TA_TN_daf7mut[0]][0]
             WT_equation=[Eq(TA_TN_WT[0][i]-i) for i in TA_TN_WT[0]][0]
@@ -385,8 +433,12 @@ class Neuron:
                     solutions=dict({key:np.mean([value1,value2])})
         if (type(solutions)==list and len(solutions)>1):
             ###If there are more than one set of solutions, choose the one with higher mean between the TA and TN.
-            hi_mean=np.argmax([np.mean(list(i.values())) for i in solutions])
-            solutions=solutions[hi_mean]##this will ensure all output will be dict    
+            try:
+                hi_mean=np.argmax([np.mean(list(i.values())) for i in solutions])
+                solutions=solutions[hi_mean]##this will ensure all output will be dict
+            except TypeError:
+                print('using PSO instead')
+                solutions=self.find_TA_TN_using_PSO(food=food,verbose=verbose)
         return solutions
 
 class Model:
@@ -394,15 +446,20 @@ class Model:
     save all defined neurons together (max 3).
     Argument: object that has defined_model_interaction.
     """
-    def __init__(self,new_model,df_temp_food,PSO=False):
+    def __init__(self,new_model,df_temp_food,PSO=False,verbose=False):
         #input a dict with defined_model_interaction neuron
         self.model=dict()
+        self.number_of_connections=[]
         for i in new_model:
-            self.model[i]=Neuron(new_model[i],i,df_temp_food)            
+            self.model[i]=Neuron(new_model[i],i,df_temp_food)
+            self.number_of_connections.append(np.sum(abs(self.model[i].neuron)))
+        self.number_of_connections=np.sum(self.number_of_connections)
         self.df_temp_food=df_temp_food
-        self.DA_table=self.DA_table_across_food_level()
         self.PSO=PSO
-        self.TA_TN_table=self.TA_TN_table_across_food_levels(PSO=PSO)
+        self.verbose=verbose
+        self.DA_table=self.DA_table_across_food_level(verbose=verbose)
+        self.TA_TN_table=self.TA_TN_table_across_food_levels(PSO=PSO,verbose=verbose)
+        
     
     def model_interactions(self): 
         #display model interactions in form of table side by side
@@ -411,18 +468,20 @@ class Model:
             df=self.model[i].neuron
             html_str+=df.to_html()
         display_html(html_str.replace('table','table style="display:inline"'),raw=True)
+        for i in self.model:
+            self.model[i].write_equation(True)
 
-    def DA_table_across_food_level(self,round_number=False,number=3): 
+    def DA_table_across_food_level(self,round_number=False,number=3,verbose=False): 
         #call Neuron.find DA_at_food_level for all neurons in the model dict.
         table=pd.DataFrame({'Food':np.unique(self.df_temp_food['Food'])})
         for i in self.model:
             if round_number==True:
-                table['DA'+i]=[round(self.model[i].find_DA_at_food_level(n),number) for n in np.unique(self.df_temp_food['Food'])]
+                table['DA'+i]=[round(self.model[i].find_DA_at_food_level(n,verbose=verbose),number) for n in np.unique(self.df_temp_food['Food'])]
             else:
-                table['DA'+i]=[self.model[i].find_DA_at_food_level(n) for n in np.unique(self.df_temp_food['Food'])]
+                table['DA'+i]=[self.model[i].find_DA_at_food_level(n,verbose=verbose) for n in np.unique(self.df_temp_food['Food'])]
         return table
     
-    def TA_TN_table_across_food_levels(self,PSO=False):
+    def TA_TN_table_across_food_levels(self,PSO=False,verbose=False):
         """
         Calculate the TA_TN across 6 food levels, and append them into a dataframe.
         """
@@ -431,13 +490,15 @@ class Model:
         solutions=[]
         for i in self.model:
             if PSO==True:
-                solutions.append([self.model[i].find_TA_TN_using_PSO(n) for n in np.unique(self.df_temp_food['Food'])])
+                solutions.append([self.model[i].find_TA_TN_using_PSO(n,verbose=verbose) for n in np.unique(self.df_temp_food['Food'])])
             else:
                 solutions.append([self.model[i].systems_of_equations(n) for n in np.unique(self.df_temp_food['Food'])])
         TA_TN_pd=pd.DataFrame({'Food':np.unique(self.df_temp_food['Food']),
                                'TAnsm':np.zeros(6),'TAadf':np.zeros(6),'TAasi':np.zeros(6),'TNnsm':np.zeros(6),'TNadf':np.zeros(6),'TNasi':np.zeros(6)})
         for i in solutions:
             for n in range(6):
+                if type(i[n])==list:
+                    i[n]=i[n][0]
                 for x in list(i[n].keys()):
                     TA_TN_pd.loc[n,str(x)]=i[n][x]
       
@@ -527,7 +588,7 @@ class Model:
         simulated_table['Food']=simulated_table['Food'].astype('int64')
         return simulated_table
 
-    def simulate_all_together(self,Y0=1,t=np.linspace(0,30,100),compare=False):
+    def simulate_all_together(self,Y0=1,t=np.linspace(0,30,100),gamma=0.5,compare=False):
         simulated=dict()
         genotypes=['wildtype','tph1mut','daf7mut']
         for genotype in genotypes:
@@ -545,6 +606,7 @@ class Model:
         experimental['type']=['experimental']*len(experimental['Food'])
         experimental=experimental[experimental['genotype']!='doublemut']
         mse_score=np.mean((np.array(experimental[['ADF','NSM','ASI']])-np.array(simulation[['ADF','NSM','ASI']]))**2)
+        mse_score=mse_score+gamma*self.number_of_connections
         if compare==True:
             return mse_score
         else:
