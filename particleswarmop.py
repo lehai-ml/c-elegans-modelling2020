@@ -1,11 +1,6 @@
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
 import sympy as sp
-from sympy.solvers import solve
-from sympy import symbols, Eq
-from IPython.display import display, Math, Latex,display_html
-from scipy.integrate import odeint
 import elegansfunc as elegans
 
 """
@@ -99,6 +94,7 @@ class Space:
     def set_pbest(self):
         for particle in self.particles:
             fitness_candidate=self.fitness(particle)
+            
             if particle.pbest_value>fitness_candidate:#the fitness function will calculate the cell expression, you want that value to be as close to the target as possible.
                 particle.pbest_value=fitness_candidate
                 particle.pbest_position=particle.position
