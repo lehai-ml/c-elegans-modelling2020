@@ -6,39 +6,47 @@ from sympy import symbols, Eq
 from scipy.integrate import odeint
 import particleswarmop as PSO
 import elegansfunc as elegans
-
+"""
+Initialize with n random models
+For each generation in defined number generations:
+    Calculate the fitness value (i.e. MSE score)
+    Choose p number of parents to create o number of offsprings.
+    Each offsprings are further mutated so that the population at the end one generation is consisted of mutated offsprings and their parents.
+return the last population along with the index of the best model.
+"""
 
 class GA:
-    def __init__(self,n_generation,population_size,n_parents,offspring_size,df_temp_food):
-        self.n_generation=n_generation
+    def __init__(self,population_size,n_generation,n_parents,offspring_size,df_temp_food):
         self.population_size=population_size
+        self.n_generation=n_generation
         self.n_parents=n_parents
         self.offspring_size=offspring_size
         self.df_temp_food=df_temp_food
 
-    def running_GA(self):
+    def running_GA(self,gamma=0.5):
         new_population,new_population_connections=self.random_model_generator()
         for generation in range(self.n_generation):
             print('Generation:',generation)
-            mse_score=self.fitness(new_population)
+            mse_score=self.fitness(new_population,gamma)
             
-            parents,parents_connections=self.select_mating_pool(new_population,new_population_connections,mse_score,self.n_parents)
+            parents,parents_connections=self.select_mating_pool(new_population,new_population_connections,mse_score)
             
-            offsprings,offspring_connections=self.crossover_and_mutation(parents_connections,self.offspring_size)
+            offsprings,offspring_connections=self.crossover_and_mutation(parents_connections)
             
             new_population=parents+offsprings
             new_population_connections=parents_connections+offspring_connections
             
             print('Best MSE result for this generation:',np.min(mse_score))
-        best_fitness=self.fitness(new_population)
-        print('Best MSE score:' np.min(best_fitness))
-        print('Best solution index is:'np.argmin(best_fitness))
+        best_fitness=self.fitness(new_population,gamma)
+        print('Best MSE score:',np.min(best_fitness))
+        print('Best solution index is:',np.argmin(best_fitness))
         return (new_population,new_population_connections)
 
     def random_model_generator(self):
         population=[]
         population_connections=[]
         for n in range(self.population_size):
+            print('creating initial model ',n+1)
             connections=dict({'nsm':[],'asi':[],'adf':[]})
             for i in connections:
                 connections[i]=list(np.random.choice([-1,0,1],7))
@@ -47,33 +55,36 @@ class GA:
             neuron_ASI=elegans.define_model_interactions('asi',TA2TN=connections['asi'][0],TA2DA=connections['asi'][1],TA2S=connections['asi'][2],TN2TA=connections['asi'][3],TN2DA=connections['asi'][4],TN2S=connections['asi'][5],DA2S=connections['asi'][6])
             
             model1=dict({'nsm':neuron_NSM,'asi':neuron_ASI,'adf':neuron_ADF})
+            print(model1)
             temp_model=elegans.Model(model1,elegans.normalize_by_highest_wildtype_mean(self.df_temp_food),PSO=False)
             population.append(temp_model)
             population_connections.append(connections)
         return (population,population_connections)
     
-    def fitness(self,population):
-        mse_score=[model.simulate_all_together(compare=True) for model in population]
+    def fitness(self,population,gamma):
+        mse_score=[model.simulate_all_together(gamma=gamma,compare=True) for model in population]
         return mse_score
     # select best of the mse_Score as parent
     
-    def select_mating_pool(self, population,population_connections,mse_score, n_parents):
+    def select_mating_pool(self, population,population_connections,mse_score):
+        print('now selecting parents for mating')
         parents=[]
         parents_connections=[]
-        for n in range(n_parents):
+        for n in range(self.n_parents):
             parents.append(population[np.argmin(mse_score)])
             parents_connections.append(population_connections[np.argmin(mse_score)])
             mse_score[np.argmin(mse_score)]=9999999 #so that it cannot be selected again.
         return (parents,parents_connections)
     
-    def crossover_and_mutation(self,parents_connections,offspring_size):
+    def crossover_and_mutation(self,parents_connections):
+        print('now creating offsprings')
         offsprings=[]
         offspring_connections=[]
-        for k in range(offspring_size):
+        for k in range(self.offspring_size):
             parent1_idx= k%len(parents_connections)
             parent2_idx= (k+1)%len(parents_connections)
             mutation_point=np.random.choice([3,4,5],1)[0]
-            mutation=list(np.random.choice([-1,0,1],1)[0])
+            mutation=np.random.choice([-1,0,1],1)[0]
             offspring_connection=dict({'nsm':[],'asi':[],'adf':[]})
             for i in offspring_connection:
                 offspring_connection[i]=parents_connections[parent1_idx][i][0:mutation_point]+[mutation]+parents_connections[parent2_idx][i][mutation_point+1:7]
