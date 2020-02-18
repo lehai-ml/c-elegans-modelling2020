@@ -23,12 +23,14 @@ class GA:
         self.offspring_size=offspring_size
         self.df_temp_food=df_temp_food
 
-    def running_GA(self,gamma=0.5):
+    def running_GA(self,gamma=0.5,file='generation.txt'):
+        output=open(file,'a')
         new_population,new_population_connections=self.random_model_generator()
         for generation in range(self.n_generation):
             print('Generation:',generation)
+            output.write('Generation'+str(generation)+"\n")
+            [output.write(str(i)+"\n") for i in new_population_connections]
             mse_score=self.fitness(new_population,gamma)
-            
             parents,parents_connections=self.select_mating_pool(new_population,new_population_connections,mse_score)
             
             offsprings,offspring_connections=self.crossover_and_mutation(parents_connections)
@@ -37,9 +39,16 @@ class GA:
             new_population_connections=parents_connections+offspring_connections
             
             print('Best MSE result for this generation:',np.min(mse_score))
+            output.write('Best MSE result for this generation is'+str(np.min(mse_score))+"\n")
+        print('Final population')
+        output.write('Final population'+"\n")
+        [output.write(str(i)+"\n") for i in new_population_connections]
         best_fitness=self.fitness(new_population,gamma)
         print('Best MSE score:',np.min(best_fitness))
+        output.write('Best MSE score is'+str(np.min(best_fitness))+"\n")
         print('Best solution index is:',np.argmin(best_fitness))
+        output.write('Best solution index is'+str(np.argmin(best_fitness))+"\n")
+        output.close()
         return (new_population,new_population_connections)
 
     def random_model_generator(self):
@@ -100,3 +109,8 @@ class GA:
             offspring_connections.append(offspring_connection)
             
         return (offsprings,offspring_connections)
+    
+    def save_me(self,file,input_as_list):
+        with open(file,'w') as output:
+            output.write(str(input_as_list))
+        
