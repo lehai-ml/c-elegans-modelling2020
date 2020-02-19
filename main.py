@@ -6,36 +6,36 @@ import time
 def main():
     
     dataset=pd.read_excel('./dataset.xlsx')
-
-    # by_15C=dataset[dataset['temperature']==15]
-    by_20C=dataset[dataset['temperature']==20]
-    # by_25C=dataset[dataset['temperature']==25]
     
-    PSO=input('use PSO= ')
-    verbose=input('use verbose= ')
+    by_20C=dataset[dataset['temperature']==20]
+    
+    PSO=bool(input('use PSO= '))
+    verbose=bool(input('use verbose= '))
     population_size=int(input('population size= '))
     n_generation=int(input('n generation= '))
     n_parents=int(input('n_parents= '))
     offspring_size=int(input('offspring size= '))
     file=input('filename is ')
+    file='test.txt'
     start=time.time()
-    with open(file,'wb') as output:
-        output.write('use PSO= ',PSO)
-        output.write('population size= ',population_size)
-        output.write('n_generation= ',population_size)
-        output.write('n_parents= ',population_size)
-        output.write('offspring_size= ',population_size)
+    with open(file,'w') as output:
+        if PSO==True:
+            output.write('using PSO'+"\n")
+        output.write('population size= '+str(population_size)+"\n")
+        output.write('n_generation= '+str(n_generation)+"\n")
+        output.write('n_parents= '+str(n_parents)+"\n")
+        output.write('offspring_size= '+str(offspring_size)+"\n")
     test=gen.GA(population_size=population_size,
                 n_generation=n_generation,
                 n_parents=n_parents,
                 offspring_size=offspring_size,
                 df_temp_food=by_20C)
+    
     population,population_connection=test.running_GA(PSO=PSO,verbose=verbose,file=file)
     end=time.time()
     print(end-start)
     with open(file,'a') as output:
-        output.write('total running time',(end-start))
-    
+        output.write('total running time'+str(end-start)+"\n")
     
 if __name__=='__main__':
     main()
