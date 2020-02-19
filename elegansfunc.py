@@ -107,19 +107,22 @@ class Neuron:
         Write the differential equation in string format.
         Please read the define_model_interaction_function above.
         Function_work_flow: First, define the DIRECT activatory connections to the cell. (list1)
-        Then define the INDIRECT activatory connections to those in list1.(list2)
-        Then define the INDIRECT inhibitory connections to those in list1. (dict1)
-        Then define the DIRECT inhibitory connections to the cells. (list3)
-        Then define the INDIRECT activatory connections to those in list3. (list4)
-        Then define the INDIRECT inhibitory connections to those in list2 (dict2)
+        Then define the INDIRECT activatory connections to those (called activatory) in list1.(dict1)
+        Then define the INDIRECT inhibitory connections to those (called activatory) in list1. (dict2)
+
+        Then define the DIRECT inhibitory connections to the cells. (list2)
+        Then define the INDIRECT activatory connections to those (called inhibitory)in list2. (dict3)
+        Then define the INDIRECT inhibitory connections to those (called inhibitory)in list2 (dict4)
         
         Then build term by term:
-        S term=S/denominator for S term (saved as string), where denominator for S term = everything in dict2(already saved as equation)+everything in list4.
-        Direct activation term= take everything from dict1 (already saved as equation)+everything in list2.
+        S term=S/denominator for S term (saved as string), where denominator for S term = everything dict3 is presented as multiplication, divided by those in dict4. (with matched keys in both dicts)
+
+        Direct activation term= everything dict1 is presented as multiplication, divided by those in dict2. (with matched keys in both dicts)
+
         
         Equation= join S term with Direct activation term with degradation term.
         print_equation=True-> print as Latex, works in IPython.
-        
+                
         """
         neuron=self.neuron
         neuron_temp=neuron.copy()
@@ -131,42 +134,51 @@ class Neuron:
         interactions_name=list(neuron_temp.index)
 
 
-        ###activatory_interactions
+        # ###activatory_interactions
         direct_activatory_interactions_to_cell=[interactions_name[i] for i in np.where(neuron_temp['S{}'.format(neuron_label)]==1)[0]] #anything that directly activate the cell
 
-        indirect_activation_to_activatory_interactions_to_cell=[interactions_name[i] for n in direct_activatory_interactions_to_cell for i in np.where(neuron_temp[n]==1)[0]]#anything that activate the direct activation of the cell.
+        indirect_activation_to_activatory_interactions_to_cell=dict()
+        for n in direct_activatory_interactions_to_cell:
+            indirect_activation_to_activatory_interactions_to_cell[n]=[interactions_name[i] for i in np.where(neuron_temp[n]==1)[0]]#anything that activate the direct activation of the cell.
+            if len(indirect_activation_to_activatory_interactions_to_cell[n])==0:
+                indirect_activation_to_activatory_interactions_to_cell[n]='1' #remeber as dict
+            elif len(indirect_activation_to_activatory_interactions_to_cell[n])>1:
+                indirect_activation_to_activatory_interactions_to_cell[n]='*'.join(indirect_activation_to_activatory_interactions_to_cell[n])
+            else:
+                indirect_activation_to_activatory_interactions_to_cell[n]=''.join(indirect_activation_to_activatory_interactions_to_cell[n])
 
         indirect_inhibition_to_activatory_interactions_to_cell=dict()
         for n in direct_activatory_interactions_to_cell:
             indirect_inhibition_to_activatory_interactions_to_cell[n]=[interactions_name[i] for i in np.where(neuron_temp[n]==-1)[0]]
-        for i in indirect_inhibition_to_activatory_interactions_to_cell:
-            if len(indirect_inhibition_to_activatory_interactions_to_cell[i])==0:
-                indirect_inhibition_to_activatory_interactions_to_cell[i]='1'
+            if len(indirect_inhibition_to_activatory_interactions_to_cell[n])==0:
+                indirect_inhibition_to_activatory_interactions_to_cell[n]='1'
             else:
-                indirect_inhibition_to_activatory_interactions_to_cell[i]='('+'+'.join(['1']+indirect_inhibition_to_activatory_interactions_to_cell[i])+')'
+                indirect_inhibition_to_activatory_interactions_to_cell[n]='('+'+'.join(['1']+indirect_inhibition_to_activatory_interactions_to_cell[n])+')'
 
-
-        ###inhibitory_interactions these will be all under the S
+        # ###inhibitory_interactions these will be all under the S
         direct_inhibitory_interactions_to_cell=[interactions_name[i] for i in np.where(neuron_temp['S{}'.format(neuron_label)]==-1)[0]]
 
-        indirect_activation_to_inhibitory_interactions_to_cell=[interactions_name[i] for n in direct_inhibitory_interactions_to_cell for i in np.where(neuron_temp[n]==1)[0]]
-
+        indirect_activation_to_inhibitory_interactions_to_cell=dict()
+        for n in direct_inhibitory_interactions_to_cell:
+            indirect_activation_to_inhibitory_interactions_to_cell[n]=[interactions_name[i] for i in np.where(neuron_temp[n]==1)[0]]#anything that activate the direct inhibition of the cell.
+            if len(indirect_activation_to_inhibitory_interactions_to_cell[n])==0:
+                indirect_activation_to_inhibitory_interactions_to_cell[n]='1' #remeber as dict
+            elif len(indirect_activation_to_inhibitory_interactions_to_cell[n])>1:
+                indirect_activation_to_inhibitory_interactions_to_cell[n]='*'.join(indirect_activation_to_inhibitory_interactions_to_cell[n])
+            else:
+                indirect_activation_to_inhibitory_interactions_to_cell[n]=''.join(indirect_activation_to_inhibitory_interactions_to_cell[n])
+                
         indirect_inhibition_to_inhibitory_interactions_to_cell=dict()
         for n in direct_inhibitory_interactions_to_cell:
             indirect_inhibition_to_inhibitory_interactions_to_cell[n]=[interactions_name[i] for i in np.where(neuron_temp[n]==-1)[0]]
-        for i in indirect_inhibition_to_inhibitory_interactions_to_cell:
-            if len(indirect_inhibition_to_inhibitory_interactions_to_cell[i])==0:
-                indirect_inhibition_to_inhibitory_interactions_to_cell[i]='1'
+            if len(indirect_inhibition_to_inhibitory_interactions_to_cell[n])==0:
+                indirect_inhibition_to_inhibitory_interactions_to_cell[n]='1'
             else:
-                indirect_inhibition_to_inhibitory_interactions_to_cell[i]='('+'+'.join(['1']+indirect_inhibition_to_inhibitory_interactions_to_cell[i])+')'
-
-
+                indirect_inhibition_to_inhibitory_interactions_to_cell[n]='('+'+'.join(['1']+indirect_inhibition_to_inhibitory_interactions_to_cell[n])+')'
+                
         ###build term by term:
         #term Snsm:
-
-        denominator_of_S=['/'.join([key,value]) for key,value in indirect_inhibition_to_inhibitory_interactions_to_cell.items()]
-        for i in indirect_activation_to_inhibitory_interactions_to_cell:
-            denominator_of_S.append(i)
+        denominator_of_S=['/'.join(['*'.join([key,value1]),indirect_inhibition_to_inhibitory_interactions_to_cell[key]]) for key,value1 in indirect_activation_to_inhibitory_interactions_to_cell.items()]
         if denominator_of_S==[]:
             denominator_of_S=['1']
         else:
@@ -174,14 +186,10 @@ class Neuron:
         S_term=['/'.join(['S{}'.format(neuron_label)]+denominator_of_S)]
 
         ##term for direct activation of S:
-        direct_activation_term=['/'.join([key,value]) for key,value in indirect_inhibition_to_activatory_interactions_to_cell.items()]
-        for i in indirect_activation_to_activatory_interactions_to_cell:
-            direct_activation_term.append(i)
+        direct_activation_term=['/'.join(['*'.join([key,value1]),indirect_inhibition_to_activatory_interactions_to_cell[key]]) for key,value1 in indirect_activation_to_activatory_interactions_to_cell.items()]
         direct_activation_term=['+'.join(direct_activation_term)]
-
-
+        
         equation='+'.join(S_term+direct_activation_term)+'-alpha*{}'.format(neuron_label.upper())
-
         if print_equation:        
             return display(Math('dX{}/dt='.format(neuron_label)+equation))
         else:
@@ -338,9 +346,10 @@ class Neuron:
         TNnsm,TNadf,TNasi=symbols('TNnsm TNadf TNasi')
         alpha=symbols('alpha')
         
-        X1=symbols('TA'+neuron_label,real=True)
-        X2=symbols('TN'+neuron_label,real=True)
-        
+        # X1=symbols('TA'+neuron_label,real=True)
+        # X2=symbols('TN'+neuron_label,real=True)
+        X1=symbols('TA'+neuron_label)
+        X2=symbols('TN'+neuron_label)
         
         equation_to_solve=self.write_equation()
         equation=Eq(eval(equation_to_solve))
@@ -370,8 +379,10 @@ class Neuron:
         TNnsm,TNadf,TNasi=symbols('TNnsm TNadf TNasi')
         alpha=symbols('alpha')
         
-        X1=symbols('TA'+neuron_label,real=True)
-        X2=symbols('TN'+neuron_label,real=True)
+        # X1=symbols('TA'+neuron_label,real=True)
+        # X2=symbols('TN'+neuron_label,real=True)
+        X1=symbols('TA'+neuron_label)
+        X2=symbols('TN'+neuron_label)
         
         equation_to_solve=self.write_equation()
         equation=Eq(eval(equation_to_solve))
@@ -410,12 +421,15 @@ class Neuron:
         
         X1=symbols('TA'+neuron_label,real=True)
         X2=symbols('TN'+neuron_label,real=True)
+        # X1=symbols('TA'+neuron_label)
+        # X2=symbols('TN'+neuron_label)
         
         if (TA_TN_daf7mut==False or TA_TN_WT==False):
             solutions=dict({'TA'+neuron_label:0,
                             'TN'+neuron_label:0})
             ##In case there is no solution due to no TA or TN, set those value to 0
         elif (TA_TN_daf7mut==[] or TA_TN_WT==[]):
+            print('no real solution for TA_TN using PSO instead')
             solutions=self.find_TA_TN_using_PSO(food=food,verbose=verbose)
             ## In case there is no solution because of not real numbers, try to find using PSO
         else:
