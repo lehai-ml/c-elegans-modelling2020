@@ -109,8 +109,3 @@ class GA:
             offspring_connections.append(offspring_connection)
             
         return (offsprings,offspring_connections)
-    
-    def save_me(self,file,input_as_list):
-        with open(file,'w') as output:
-            output.write(str(input_as_list))
-        
