@@ -23,9 +23,9 @@ class GA:
         self.offspring_size=offspring_size
         self.df_temp_food=df_temp_food
 
-    def running_GA(self,gamma=0.5,file='generation.txt'):
+    def running_GA(self,gamma=0.5,PSO=False,verbose=False,file='generation.txt'):
         output=open(file,'a')
-        new_population,new_population_connections=self.random_model_generator()
+        new_population,new_population_connections=self.random_model_generator(PSO=PSO,verbose=verbose)
         for generation in range(self.n_generation):
             print('Generation:',generation)
             output.write('Generation'+str(generation)+"\n")
@@ -33,7 +33,7 @@ class GA:
             mse_score=self.fitness(new_population,gamma)
             parents,parents_connections=self.select_mating_pool(new_population,new_population_connections,mse_score)
             
-            offsprings,offspring_connections=self.crossover_and_mutation(parents_connections)
+            offsprings,offspring_connections=self.crossover_and_mutation(parents_connections,PSO=PSO,verbose=verbose)
             
             new_population=parents+offsprings
             new_population_connections=parents_connections+offspring_connections
@@ -51,7 +51,7 @@ class GA:
         output.close()
         return (new_population,new_population_connections)
 
-    def random_model_generator(self):
+    def random_model_generator(self,PSO,verbose):
         population=[]
         population_connections=[]
         for n in range(self.population_size):
@@ -65,7 +65,7 @@ class GA:
             
             model1=dict({'nsm':neuron_NSM,'asi':neuron_ASI,'adf':neuron_ADF})
             print(model1)
-            temp_model=elegans.Model(model1,elegans.normalize_by_highest_wildtype_mean(self.df_temp_food),PSO=False)
+            temp_model=elegans.Model(model1,elegans.normalize_by_highest_wildtype_mean(self.df_temp_food),PSO=PSO,verbose=verbose)
             population.append(temp_model)
             population_connections.append(connections)
         return (population,population_connections)
@@ -85,7 +85,7 @@ class GA:
             mse_score[np.argmin(mse_score)]=9999999 #so that it cannot be selected again.
         return (parents,parents_connections)
     
-    def crossover_and_mutation(self,parents_connections):
+    def crossover_and_mutation(self,parents_connections,PSO,verbose):
         print('now creating offsprings')
         offsprings=[]
         offspring_connections=[]
@@ -103,7 +103,7 @@ class GA:
             neuron_ASI=elegans.define_model_interactions('asi',TA2TN=offspring_connection['asi'][0],TA2DA=offspring_connection['asi'][1],TA2S=offspring_connection['asi'][2],TN2TA=offspring_connection['asi'][3],TN2DA=offspring_connection['asi'][4],TN2S=offspring_connection['asi'][5],DA2S=offspring_connection['asi'][6])
             
             model2=dict({'nsm':neuron_NSM,'asi':neuron_ASI,'adf':neuron_ADF})
-            temp_model=elegans.Model(model2,elegans.normalize_by_highest_wildtype_mean(self.df_temp_food),PSO=False)
+            temp_model=elegans.Model(model2,elegans.normalize_by_highest_wildtype_mean(self.df_temp_food),PSO=PSO,verbose=verbose)
             
             offsprings.append(temp_model)
             offspring_connections.append(offspring_connection)
