@@ -27,10 +27,13 @@ class GA:
         output=open(file,'a')
         new_population,new_population_connections=self.random_model_generator(PSO=PSO,verbose=verbose)
         for generation in range(self.n_generation):
-            print('Generation:',generation)
-            output.write('Generation'+str(generation)+"\n")
+            print('Generation: ',generation)
+            output.write('Generation '+str(generation)+"\n")
             [output.write(str(i)+"\n") for i in new_population_connections]
             mse_score=self.fitness(new_population,gamma)
+            print('Average MSE result for this generation: ',np.mean(mse_score))
+            output.write('MSE score '+str(mse_score)+"\n")
+            output.write('Average MSE result for this generation '+str(np.mean(mse_score))+"\n")
             parents,parents_connections=self.select_mating_pool(new_population,new_population_connections,mse_score)
             
             offsprings,offspring_connections=self.crossover_and_mutation(parents_connections,PSO=PSO,verbose=verbose)
@@ -38,16 +41,18 @@ class GA:
             new_population=parents+offsprings
             new_population_connections=parents_connections+offspring_connections
             
-            print('Best MSE result for this generation:',np.min(mse_score))
-            output.write('Best MSE result for this generation is'+str(np.min(mse_score))+"\n")
+            print('Best MSE result for this generation: ',np.min(mse_score))
+            output.write('Best MSE result for this generation is '+str(np.min(mse_score))+"\n")
         print('Final population')
         output.write('Final population'+"\n")
         [output.write(str(i)+"\n") for i in new_population_connections]
         best_fitness=self.fitness(new_population,gamma)
-        print('Best MSE score:',np.min(best_fitness))
-        output.write('Best MSE score is'+str(np.min(best_fitness))+"\n")
+        output.write('MSE score '+str(best_fitness)+"\n")
+        print('Best MSE score: ',np.min(best_fitness))
+        output.write('Best MSE score is '+str(np.min(best_fitness))+"\n")
+        output.write('Average MSE result for this generation: '+str(np.mean(best_fitness))+"\n")
         print('Best solution index is:',np.argmin(best_fitness))
-        output.write('Best solution index is'+str(np.argmin(best_fitness))+"\n")
+        output.write('Best solution index is '+str(np.argmin(best_fitness))+"\n")
         output.close()
         return (new_population,new_population_connections)
 
@@ -103,6 +108,7 @@ class GA:
             neuron_ASI=elegans.define_model_interactions('asi',TA2TN=offspring_connection['asi'][0],TA2DA=offspring_connection['asi'][1],TA2S=offspring_connection['asi'][2],TN2TA=offspring_connection['asi'][3],TN2DA=offspring_connection['asi'][4],TN2S=offspring_connection['asi'][5],DA2S=offspring_connection['asi'][6])
             
             model2=dict({'nsm':neuron_NSM,'asi':neuron_ASI,'adf':neuron_ADF})
+            print(model2)
             temp_model=elegans.Model(model2,elegans.normalize_by_highest_wildtype_mean(self.df_temp_food),PSO=PSO,verbose=verbose)
             
             offsprings.append(temp_model)
