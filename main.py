@@ -13,6 +13,7 @@ def main():
     n_generation=int(input('n generation= '))
     n_parents=int(input('n_parents= '))
     offspring_size=int(input('offspring size= '))
+    gamma=float(input('gamma= '))
     file=input('filename is ')
     start=time.time()
     with open(file,'w') as output:
@@ -22,13 +23,14 @@ def main():
         output.write('n_generation= '+str(n_generation)+"\n")
         output.write('n_parents= '+str(n_parents)+"\n")
         output.write('offspring_size= '+str(offspring_size)+"\n")
+        output.write('gamma= '+str(gamma)+"\n")
     test=gen.GA(population_size=population_size,
                 n_generation=n_generation,
                 n_parents=n_parents,
                 offspring_size=offspring_size,
                 df_temp_food=by_20C)
     
-    population,population_connection=test.running_GA(PSO=PSO,verbose=verbose,file=file)
+    population,population_connection=test.running_GA(gamma=gamma,PSO=PSO,verbose=verbose,file=file)
     end=time.time()
     print(end-start)
     with open(file,'a') as output:

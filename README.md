@@ -7,6 +7,10 @@ dataset.xlsx- supplementary information from [Entchev et al., 2015](https://elif
 Script requires sympy v. 1.1.1, numpy 1.15.4, pandas 0.23.0, matplotlib 2.2.2 and scipy 1.1.0./ Python v.3.6.8
 
 ## Updates
+**20.02.2020**
+* Corrected PSO in case when TA or TN=0.
+* Since PSO give good results and good approximation to sympy, opted to use PSO because in the long run it is faster. Whereas due to algebraic complexities, sympy will get stuck.
+
 **17.02.2020**
 * Constrained solutions to real numbers in sympy. If there is no solution for real number, optimization with PSO is employed (applies to all parameters). particleswarmop is for TA and TN estimation, and particleswarmop_forDA is for DA estimation.
 * Genetic algorithm runs roughly 10 minutes for population_size=3,n_generation=3,n_parents=2,offspring_size=1, with the best final model MSE of 0.016.

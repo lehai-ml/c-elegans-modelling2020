@@ -33,9 +33,13 @@ class GA:
             output.write('Generation '+str(generation)+"\n")
             [output.write(str(i)+"\n") for i in new_population_connections]
             mse_score=self.fitness(new_population,gamma)
+            print(mse_score)
             print('Average MSE result for this generation: ',np.mean(mse_score))
             output.write('MSE score '+str(mse_score)+"\n")
             output.write('Average MSE result for this generation '+str(np.mean(mse_score))+"\n")
+            print('Best MSE result for this generation: ',np.min(mse_score))
+            output.write('Best MSE result for this generation is '+str(np.min(mse_score))+"\n")
+            
             parents,parents_connections=self.select_mating_pool(new_population,new_population_connections,mse_score)
             
             offsprings,offspring_connections=self.crossover_and_mutation(parents_connections,PSO=PSO,verbose=verbose)
@@ -43,10 +47,8 @@ class GA:
             new_population=parents+offsprings
             new_population_connections=parents_connections+offspring_connections
             
-            print('Best MSE result for this generation: ',np.min(mse_score))
-            output.write('Best MSE result for this generation is '+str(np.min(mse_score))+"\n")
             output.close()
-        output.open(file,'a')
+        output=open(file,'a')
         print('Final population')
         output.write('Final population'+"\n")
         [output.write(str(i)+"\n") for i in new_population_connections]
