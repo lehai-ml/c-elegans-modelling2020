@@ -16,7 +16,6 @@ def main():
     n_parents=int(input('n_parents= '))
     offspring_size=int(input('offspring size= '))
     file=input('filename is ')
-    file='test.txt'
     start=time.time()
     with open(file,'w') as output:
         if PSO==True:
