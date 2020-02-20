@@ -100,6 +100,9 @@ class Neuron:
         self.neuron=neuron
         self.neuron_label=neuron_label
         self.df_temp_food=df_temp_food
+        self.TA_number=np.sum(abs(neuron.iloc[0,]))
+        self.TN_number=np.sum(abs(neuron.iloc[1,]))
+        self.DA_number=np.sum(abs(neuron.iloc[2,]))
         
         
     def write_equation(self,print_equation=False):
@@ -285,6 +288,11 @@ class Neuron:
         neuron_label=self.neuron_label
         df_temp_food=self.df_temp_food
         df_temp_food=df_temp_food[df_temp_food['Food']==food]
+        if self.TA_number==0 and self.TN_number==0:
+            solution=dict()
+            solution['TA'+neuron_label]=0
+            solution['TN'+neuron_label]=0
+            return solution
         
         Snsm=np.array(df_temp_food['NSM'][df_temp_food['genotype']=='doublemut'])
         Sasi=np.array(df_temp_food['ASI'][df_temp_food['genotype']=='doublemut'])
@@ -302,10 +310,15 @@ class Neuron:
 
         DA_WT=self.find_DA_at_food_level(food)
         DA_daf7=0
+        TA_present=TN_present=1
+        if self.TA_number==0:
+            TA_present=0
+        if self.TN_number==0:
+            TN_present=0
         
-        search_space=PSO.Space(target,target_error,n_particles,equation_daf7=equation_daf7,equation_WT=equation_WT,Snsm=Snsm,Sasi=Sasi,Sadf=Sadf,NSM_WT=NSM_WT,NSM_daf7=NSM_daf7,ASI_WT=ASI_WT,ASI_daf7=ASI_daf7,ADF_WT=ADF_WT,ADF_daf7=ADF_daf7,DA_WT=DA_WT,DA_daf7=0)
+        search_space=PSO.Space(target,target_error,n_particles,equation_daf7=equation_daf7,equation_WT=equation_WT,Snsm=Snsm,Sasi=Sasi,Sadf=Sadf,NSM_WT=NSM_WT,NSM_daf7=NSM_daf7,ASI_WT=ASI_WT,ASI_daf7=ASI_daf7,ADF_WT=ADF_WT,ADF_daf7=ADF_daf7,DA_WT=DA_WT,DA_daf7=0,TA_present=TA_present,TN_present=TN_present)
         
-        particles_vector = [PSO.Particle() for _ in range(search_space.n_particles)]
+        particles_vector = [PSO.Particle(TA_present,TN_present) for _ in range(search_space.n_particles)]
         search_space.particles = particles_vector
         iteration = 0
         n_iterations=100
@@ -348,18 +361,25 @@ class Neuron:
         
         # X1=symbols('TA'+neuron_label,real=True)
         # X2=symbols('TN'+neuron_label,real=True)
+        
         X1=symbols('TA'+neuron_label)
         X2=symbols('TN'+neuron_label)
         
         equation_to_solve=self.write_equation()
         equation=Eq(eval(equation_to_solve))
+        
+        if self.TA_number==0:
+            X1=0
+        if self.TN_number==0:
+            X2=0
+
         TA_TN_daf7mut=sp.solve(equation.subs({Snsm:np.array(df_temp_food['NSM'][df_temp_food['genotype']=='doublemut']),
                                               Sasi:np.array(df_temp_food['ASI'][df_temp_food['genotype']=='doublemut']),
                                               Sadf:np.array(df_temp_food['ADF'][df_temp_food['genotype']=='doublemut']),
                                               NSM:np.array(df_temp_food['NSM'][df_temp_food['genotype']=='daf7mut']),
                                               ASI:np.array(df_temp_food['ASI'][df_temp_food['genotype']=='daf7mut']),
                                               ADF:np.array(df_temp_food['ADF'][df_temp_food['genotype']=='daf7mut']),
-                                              DAnsm:0,DAadf:0,DAasi:0,alpha:1
+                                              DAnsm:0,DAadf:0,DAasi:0,alpha:1,X1:X1,X2:X2
                                              }),(X1,X2))
         return TA_TN_daf7mut
         
@@ -387,6 +407,11 @@ class Neuron:
         equation_to_solve=self.write_equation()
         equation=Eq(eval(equation_to_solve))
         
+        if self.TA_number==0:
+            X1=0
+        if self.TN_number==0:
+            X2=0
+        
         TA_TN_WT=sp.solve(equation.subs({Snsm:np.array(df_temp_food['NSM'][df_temp_food['genotype']=='doublemut']),
                                                  Sasi:np.array(df_temp_food['ASI'][df_temp_food['genotype']=='doublemut']),
                                                  Sadf:np.array(df_temp_food['ADF'][df_temp_food['genotype']=='doublemut']),
@@ -396,7 +421,7 @@ class Neuron:
                                                  DAnsm:self.find_DA_at_food_level(food),
                                                  DAadf:self.find_DA_at_food_level(food),
                                                  DAasi:self.find_DA_at_food_level(food),
-                                                 alpha:1
+                                                 alpha:1,X1:X1,X2:X2
                                              }),(X1,X2))
         
         return TA_TN_WT
@@ -415,6 +440,7 @@ class Neuron:
         neuron_label=self.neuron_label
         df_temp_food=self.df_temp_food
         df_temp_food=df_temp_food[df_temp_food['Food']==food]
+            
         
         TA_TN_daf7mut=self.find_TA_TN_in_daf7mut(food,alpha=1)
         TA_TN_WT=self.find_TA_TN_in_WT(food,alpha=1)
@@ -438,13 +464,17 @@ class Neuron:
             solutions=sp.solve((daf_7_equation,WT_equation))
             ##in case where there is no solution to the system of equation, return all the examined values
             if len(solutions)==0:
-                solutions=[sp.solve(daf_7_equation,(X1,X2))[0],sp.solve(WT_equation,(X1,X2))[0]]
-                if solutions[0].keys()==solutions[1].keys():
-                    #if the they are the same keys, just take the WT value
-                    key=list(solutions[0].keys())[0]
-                    value1=list(solutions[0].values())[0]
-                    value2=list(solutions[1].values())[0]
-                    solutions=dict({key:np.mean([value1,value2])})
+                try:
+                    solutions=[sp.solve(daf_7_equation,(X1,X2))[0],sp.solve(WT_equation,(X1,X2))[0]]
+                    if solutions[0].keys()==solutions[1].keys():
+                        #if the they are the same keys, just take the mean value
+                        key=list(solutions[0].keys())[0]
+                        value1=list(solutions[0].values())[0]
+                        value2=list(solutions[1].values())[0]
+                        solutions=dict({key:np.mean([value1,value2])})
+                except IndexError:
+                    print('using PSO instead')
+                    solutions=self.find_TA_TN_using_PSO(food=food,verbose=verbose)
         if (type(solutions)==list and len(solutions)>1):
             ###If there are more than one set of solutions, choose the one with higher mean between the TA and TN.
             try:
@@ -506,7 +536,7 @@ class Model:
             if PSO==True:
                 solutions.append([self.model[i].find_TA_TN_using_PSO(n,verbose=verbose) for n in np.unique(self.df_temp_food['Food'])])
             else:
-                solutions.append([self.model[i].systems_of_equations(n) for n in np.unique(self.df_temp_food['Food'])])
+                solutions.append([self.model[i].systems_of_equations(n,verbose=verbose) for n in np.unique(self.df_temp_food['Food'])])
         TA_TN_pd=pd.DataFrame({'Food':np.unique(self.df_temp_food['Food']),
                                'TAnsm':np.zeros(6),'TAadf':np.zeros(6),'TAasi':np.zeros(6),'TNnsm':np.zeros(6),'TNadf':np.zeros(6),'TNasi':np.zeros(6)})
         for i in solutions:

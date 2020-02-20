@@ -26,7 +26,9 @@ class GA:
     def running_GA(self,gamma=0.5,PSO=False,verbose=False,file='generation.txt'):
         output=open(file,'a')
         new_population,new_population_connections=self.random_model_generator(PSO=PSO,verbose=verbose)
+        output.close()
         for generation in range(self.n_generation):
+            output=open(file,'a')
             print('Generation: ',generation)
             output.write('Generation '+str(generation)+"\n")
             [output.write(str(i)+"\n") for i in new_population_connections]
@@ -43,6 +45,8 @@ class GA:
             
             print('Best MSE result for this generation: ',np.min(mse_score))
             output.write('Best MSE result for this generation is '+str(np.min(mse_score))+"\n")
+            output.close()
+        output.open(file,'a')
         print('Final population')
         output.write('Final population'+"\n")
         [output.write(str(i)+"\n") for i in new_population_connections]

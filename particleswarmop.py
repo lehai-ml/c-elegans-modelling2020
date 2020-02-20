@@ -31,11 +31,19 @@ pg- best social position.
 rand1-rand2 are random numbers between 0<rand<1
 """
 class Particle:
-    def __init__(self):
+    def __init__(self,TA_present,TN_present):
         self.position=np.random.rand(2)
         self.pbest_position=self.position
         self.pbest_value=float('inf') #acts as unbounded upper value for comparision. This is useful for finding lowest values of something.
         self.velocity=np.random.rand(2)
+        self.TA_present=TA_present
+        self.TN_present=TN_present
+        if TA_present==0:
+            self.position[0]=0
+            self.velocity[0]=0
+        if TN_present==0:
+            self.position[1]=0
+            self.velocity[1]=0
     
     def __str__(self):
         print('I am at',self.position,'my p_best is',self.pbest_position)
@@ -44,7 +52,7 @@ class Particle:
         self.position=self.position+self.velocity
 
 class Space:
-    def __init__(self,target, target_error,n_particles,equation_daf7,equation_WT,Snsm,Sasi,Sadf,NSM_WT,NSM_daf7,ASI_WT,ASI_daf7,ADF_WT,ADF_daf7,DA_WT,DA_daf7):
+    def __init__(self,target, target_error,n_particles,equation_daf7,equation_WT,Snsm,Sasi,Sadf,NSM_WT,NSM_daf7,ASI_WT,ASI_daf7,ADF_WT,ADF_daf7,DA_WT,DA_daf7,TA_present,TN_present):
         self.target=target
         self.target_error=target_error
         self.n_particles=n_particles
@@ -67,6 +75,8 @@ class Space:
         self.ADF_daf7=ADF_daf7
         self.DA_WT=DA_WT
         self.DA_daf7=DA_daf7
+        self.TA_present=TA_present
+        self.TN_present=TN_present
     
     def print_particles(self):
         for particle in self.particles:
@@ -109,5 +119,9 @@ class Space:
     def move_particles(self):
         for particle in self.particles:
             new_velocity=(self.W*particle.velocity)+(self.c1*np.random.rand())*(particle.pbest_position-particle.position)+(self.c2*np.random.rand())*(self.gbest_position-particle.position)
+            if self.TA_present==0:
+                new_velocity[0]=0
+            if self.TN_present==0:
+                new_velocity[1]=0
             particle.velocity=new_velocity
             particle.move()        

@@ -6,11 +6,9 @@ import time
 def main():
     
     dataset=pd.read_excel('./dataset.xlsx')
-    
     by_20C=dataset[dataset['temperature']==20]
-    
-    PSO=bool(input('use PSO= '))
-    verbose=bool(input('use verbose= '))
+    PSO=bool(input('use PSO? (press enter for no)= '))
+    verbose=bool(input('use verbose? (press enter for no)= '))
     population_size=int(input('population size= '))
     n_generation=int(input('n generation= '))
     n_parents=int(input('n_parents= '))
