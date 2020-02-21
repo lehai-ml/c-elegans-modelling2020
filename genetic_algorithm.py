@@ -16,8 +16,9 @@ return the last population along with the index of the best model.
 """
 
 class GA:
-    def __init__(self,population_size,n_generation,n_parents,offspring_size,df_temp_food):
-        self.population_size=population_size
+    def __init__(self,initial_population_size,n_generation,n_parents,offspring_size,random_population_size,df_temp_food):
+        self.initial_population_size=initial_population_size
+        self.random_population_size=random_population_size
         self.n_generation=n_generation
         self.n_parents=n_parents
         self.offspring_size=offspring_size
@@ -25,7 +26,7 @@ class GA:
 
     def running_GA(self,gamma=0.5,PSO=False,verbose=False,file='generation.txt'):
         output=open(file,'a')
-        new_population,new_population_connections=self.random_model_generator(PSO=PSO,verbose=verbose)
+        new_population,new_population_connections=self.random_model_generator(population_size=self.initial_population_size,PSO=PSO,verbose=verbose)
         output.close()
         for generation in range(self.n_generation):
             output=open(file,'a')
@@ -44,8 +45,11 @@ class GA:
             
             offsprings,offspring_connections=self.crossover_and_mutation(parents_connections,PSO=PSO,verbose=verbose)
             
-            new_population=parents+offsprings
-            new_population_connections=parents_connections+offspring_connections
+            random_agents,random_agents_connections=self.random_model_generator(population_size=self.random_population_size,PSO=PSO,verbose=verbose)
+            
+            
+            new_population=parents+offsprings+random_agents
+            new_population_connections=parents_connections+offspring_connections+random_agents_connections
             
             output.close()
         output=open(file,'a')
@@ -62,11 +66,11 @@ class GA:
         output.close()
         return (new_population,new_population_connections)
 
-    def random_model_generator(self,PSO,verbose):
+    def random_model_generator(self,population_size,PSO,verbose):
         population=[]
         population_connections=[]
-        for n in range(self.population_size):
-            print('creating initial model ',n+1)
+        for n in range(population_size):
+            print('creating random model ',n+1)
             connections=dict({'nsm':[],'asi':[],'adf':[]})
             for i in connections:
                 connections[i]=list(np.random.choice([-1,0,1],7))
