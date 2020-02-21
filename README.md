@@ -7,6 +7,10 @@ dataset.xlsx- supplementary information from [Entchev et al., 2015](https://elif
 Script requires sympy v. 1.1.1, numpy 1.15.4, pandas 0.23.0, matplotlib 2.2.2 and scipy 1.1.0./ Python v.3.6.8
 
 ## Updates
+**21.02.2020**
+* Added a random agent to genetic algorithm, so that the model doesn't get stuck in the local minima.
+
+
 **20.02.2020**
 * Corrected PSO in case when TA or TN=0.
 * Since PSO give good results and good approximation to sympy, opted to use PSO because in the long run it is faster. Whereas due to algebraic complexities, sympy will get stuck.
