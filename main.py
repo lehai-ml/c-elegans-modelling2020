@@ -6,29 +6,56 @@ import time
 import matplotlib.pyplot as plt
 import numpy as np
 
-def run_simulation():
+def run_simulation_by_temperature():
+    
     dataset=pd.read_excel('./dataset.xlsx')
     by_20C=dataset[dataset['temperature']==20]
-    connections=dict()
-    file=input('filename is ')
+    by_15C=dataset[dataset['temperature']==15]
+    by_25C=dataset[dataset['temperature']==25]
+    dataset_dict=dict({'by_15C': by_15C,
+                      'by_20C': by_20C,
+                      'by_25C': by_25C})
     PSO=bool(input('use PSO? (press enter for no)= '))
     verbose=bool(input('use verbose? (press enter for no)= '))
     gamma=float(input('gamma= '))
     normalize=bool(input('use normalize? (press enter for no)= '))
+    
+    connections=dict()
+    print('TA2TN,TA2DA,TA2S,TN2S,DA2TA,DA2TN,DA2S')
+    print('TA2S,TN2TA,TN2DA,TN2S,DA2TA,DA2TN,DA2S')
+    print('TA2TN,TA2DA,TA2S,TN2TA,TN2DA,TN2S,DA2S')
+    
     for i in ['nsm','asi','adf']:
-        connections[i]=list(int(num) for num in input("Enter the connections for "+i+" separated by comma: ").strip().split(','))[:7]
+        connections[i]=list(int(num) for num in input("Enter the connections for "+i+" separated by comma: ").strip().split(','))[:7]    
     neuron_NSM=elegans.define_model_interactions('nsm',TA2TN=connections['nsm'][0],TA2DA=connections['nsm'][1],TA2S=connections['nsm'][2],TN2S=connections['nsm'][3],DA2TA=connections['nsm'][4],DA2TN=connections['nsm'][5],DA2S=connections['nsm'][6])
     neuron_ADF=elegans.define_model_interactions('adf',TA2S=connections['adf'][0],TN2TA=connections['adf'][1],TN2DA=connections['adf'][2],TN2S=connections['adf'][3],DA2TA=connections['adf'][4],DA2TN=connections['adf'][5],DA2S=connections['adf'][6])
     neuron_ASI=elegans.define_model_interactions('asi',TA2TN=connections['asi'][0],TA2DA=connections['asi'][1],TA2S=connections['asi'][2],TN2TA=connections['asi'][3],TN2DA=connections['asi'][4],TN2S=connections['asi'][5],DA2S=connections['asi'][6])
     model1=dict({'nsm':neuron_NSM,'asi':neuron_ASI,'adf':neuron_ADF})
     print(model1)
+    
+    for temp in dataset_dict:
+        file=input('filename is ')
+        run_simulation(model1=model1,
+                       connections=connections,
+                       dataset_temp=dataset_dict[temp],
+                       file=file,
+                       PSO=PSO,
+                       verbose=verbose,
+                       gamma=gamma,normalize=normalize)
+    
+    
+    
+def run_simulation(model1,connections,dataset_temp,file,PSO,verbose,gamma,normalize):
+    
     if normalize==True:
-        temp_model=elegans.Model(model1,elegans.normalize_by_highest_wildtype_mean(by_20C),PSO=PSO,verbose=verbose)
+        temp_model=elegans.Model(model1,elegans.normalize_by_highest_wildtype_mean(dataset_temp),PSO=PSO,verbose=verbose)
     else:
-        temp_model=elegans.Model(model1,by_20C,PSO=PSO,verbose=verbose)
+        temp_model=elegans.Model(model1,dataset_temp,PSO=PSO,verbose=verbose)
     print(temp_model.DA_table)
     print(temp_model.TA_TN_table)
-    with open(file,'w') as output:
+    
+    
+    with open(file,'a') as output:
         if PSO ==True:
             output.write('using PSO'+"\n")
         if normalize==True:
@@ -37,7 +64,10 @@ def run_simulation():
         output.write(str(connections)+"\n")
         output.write((temp_model.DA_table).to_string()+"\n")
         output.write((temp_model.TA_TN_table).to_string()+"\n")
+        
     run_simulate=bool(input('run simulation? (press enter for no)= '))
+    
+    
     if run_simulate==True:
         test, experimental, mse_score=temp_model.simulate_all_together(gamma=gamma,compare=False)
         f,axes=plt.subplots(3,3,sharey=True,sharex=True,figsize=(15,10))
@@ -78,6 +108,11 @@ def run_GA():
     
     dataset=pd.read_excel('./dataset.xlsx')
     by_20C=dataset[dataset['temperature']==20]
+    by_15C=dataset[dataset['temperature']==15]
+    by_25C=dataset[dataset['temperature']==25]
+    dataset_dict=dict({'by_15C': by_15C,
+                      'by_20C': by_20C,
+                      'by_25C': by_25C})
     PSO=bool(input('use PSO? (press enter for no)= '))
     verbose=bool(input('use verbose? (press enter for no)= '))
     initial_population_size=int(input('initial population size= '))
@@ -102,7 +137,7 @@ def run_GA():
                 n_parents=n_parents,
                 offspring_size=offspring_size,
                 random_population_size=random_population_size,
-                df_temp_food=by_20C)
+                dataset_dict=dataset_dict)
     
     population,population_connection=test.running_GA(gamma=gamma,PSO=PSO,verbose=verbose,file=file)
     end=time.time()
@@ -115,7 +150,7 @@ if __name__=='__main__':
     if run_GA_func==True:
         run_GA()
     else:
-        run_simulation()
+        run_simulation_by_temperature()
 
 
 # def main():
