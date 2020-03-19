@@ -1,0 +1,148 @@
+Final population
+{'nsm': [0, -1, 0, 0, 0, 0, 1], 'asi': [1, 0, 0, 0, 0, 0, 0], 'adf': [-1, 0, -1, 0, 0, -1, 1]}
+
+Detailed mse by temperature for each model{0: [3.5503150953196094, 3.5382476424166764, 3.5451431380390295]
+
+Best MSE score is 3.5445686252584387
+Average MSE result for this generation: 11.147034286268173
+Best solution index is 0
+
+
+
+Final population
+{'nsm': [-1, 1, 0, 0, 0, 0, 1], 'asi': [0, -1, 0, 0, 0, 0, 0], 'adf': [0, -1, -1, 0, 0, 0, 1]}
+
+Detailed mse by temperature for each model{0: [3.5655481883321225, 3.5550378629195594, 3.5603047195000848]
+
+Best MSE score is 3.560296923583922
+Average MSE result for this generation: 6.011009269669215
+Best solution index is 0
+
+
+Final population
+{'nsm': [-1, 0, -1, -1, 0, 0, -1], 'asi': [0, 0, 1, 0, 0, 0, 1], 'adf': [0, 1, 0, 0, 0, 0, -1]}
+
+Detailed mse by temperature for each model{0: [4.0580619671165, 4.0327849478454985, 4.016393472026952]
+
+Best MSE score is 4.035746795662983
+Average MSE result for this generation: 19.678676442592682
+Best solution index is 0
+
+
+Final population
+
+{'nsm': [0, -1, 1, 0, 0, 0, -1], 'asi': [0, -1, 1, 0, 0, 0, 1], 'adf': [-1, 0, 0, -1, 0, 0, 0]}
+
+Detailed mse by temperature for each model{6: [4.0519968925972405, 4.038093702047397, 4.024265012764641]}
+Best MSE score is 4.038118535803092
+Average MSE result for this generation: 30.486006895760028
+Best solution index is 6
+
+Final population
+
+{'nsm': [1, 1, 0, 0, 0, 0, 1], 'asi': [0, 1, 0, 0, 0, 1, 0], 'adf': [0, 1, -1, 0, 0, 0, 1]}
+Detailed mse by temperature for each model{0: [4.037884326382356, 4.039192036961954, 4.043207078501036]}
+
+Best MSE score is 4.040094480615116
+Average MSE result for this generation: 6.9094417599903055
+Best solution index is 0
+
+Final population
+
+{'nsm': [0, 1, -1, 0, 1, 0, -1], 'asi': [0, 1, 1, 0, 1, 0, 0], 'adf': [0, 0, 1, 0, 1, -1, 0]}
+
+Detailed mse by temperature for each model{5: [5.046422786479582, 5.0548818699910045, 5.059582162463535]}
+
+Best MSE score is 5.053628939644707
+Average MSE result for this generation: 42.31163531163706
+Best solution index is 5
+
+Final population
+
+{'nsm': [0, 0, -1, 0, 0, -1, 0], 'asi': [0, -1, 1, 0, 1, -1, 1], 'adf': [0, 1, -1, -1, 0, 0, 0]}
+
+Detailed mse by temperature for each model{0: [5.060806369233237, 5.046293297916776, 5.055695513445571]}
+
+Best MSE score is 5.054265060198528
+Average MSE result for this generation: 36.10498220630599
+Best solution index is 0
+
+Final population
+
+
+{'nsm': [0, 1, 1, 0, -1, 0, -1], 'asi': [0, 1, 0, 0, 0, 0, -1], 'adf': [0, 0, 0, 0, 0, 0, 1]}
+Detailed mse by temperature for each model{4: [3.5614749145342883, 3.545032158667012, 3.55725242336554]}
+Best MSE score is 3.5545864988556133
+Average MSE result for this generation: 8.711431798971853
+Best solution index is 4
+
+
+Final population
+{'nsm': [-1, -1, 1, 0, 0, -1, 1], 'asi': [0, 0, 1, 0, 0, 0, 0], 'adf': [0, -1, 0, 0, 1, 0, 0]}
+Detailed mse by temperature for each model{0: [4.0387905417064385, 4.039071295516545, 4.0522946630073005]}
+
+Best MSE score is 4.043385500076761
+Average MSE result for this generation: 36.64503600949908
+Best solution index is 0
+
+
+Final population
+{'nsm': [1, -1, 1, 0, 0, -1, 0], 'asi': [1, -1, 1, 0, -1, -1, 0], 'adf': [0, -1, 0, 0, -1, 0, -1]}
+
+Detailed mse by temperature for each model{0: [6.1203162111475145, 6.0294647467623115, 6.043128434495863]}
+
+Best MSE score is 6.064303130801896
+Average MSE result for this generation: 25.48919882597193
+Best solution index is 0
+
+Final population
+{'nsm': [1, 0, 1, 0, 1, 0, 1], 'asi': [1, 1, 1, 0, 1, 0, 0], 'adf': [-1, 1, 0, 0, 1, 0, 0]}
+
+Detailed mse by temperature for each model{0: [5.53989457871062, 5.541415371929934, 5.552797921744717]}
+
+Best MSE score is 5.544702624128424
+Average MSE result for this generation: 13.21493668212079
+Best solution index is 0
+
+Final population
+
+{'nsm': [0, 0, 0, 0, 0, -1, 1], 'asi': [0, 0, 0, 0, -1, 0, 0], 'adf': [1, 0, -1, 0, 0, -1, 1]}
+
+
+Detailed mse by temperature for each model{0: [3.550521195007839, 3.5393604986090823, 3.5445971376087035]}
+
+
+Best MSE score is 3.544826277075208
+Average MSE result for this generation: 12.612580257090736
+Best solution index is 0
+Final population
+
+
+{'nsm': [0, 1, -1, -1, 0, 0, 1], 'asi': [0, 0, 1, 0, 0, 0, 0], 'adf': [0, 0, -1, 1, 0, 0, 1]}
+
+Detailed mse by temperature for each model{4: [4.025111064952836, 4.026259896482764, 4.034774326223037]}
+
+Best MSE score is 4.028715095886212
+Average MSE result for this generation: 15.923930403933696
+Best solution index is 4
+
+
+Final population
+{'nsm': [0, 0, 0, 1, 0, 0, 1], 'asi': [0, 1, 1, 0, 0, 1, 1], 'adf': [0, -1, 0, 0, 0, 1, 0]}
+
+Detailed mse by temperature for each model{0: [4.0385990234454505, 4.0388006399246885, 4.049618519431704]}
+
+
+Best MSE score is 4.042339394267281
+Average MSE result for this generation: 13.917923333535748
+Best solution index is 0
+
+
+Final population
+
+{'nsm': [-1, 0, 0, -1, 0, 0, 1], 'asi': [-1, 0, 1, 0, 0, 0, 1], 'adf': [0, 0, 0, -1, 0, 0, 0]}
+
+Detailed mse by temperature for each model{5: [3.5660346058943344, 3.5474828480458953, 3.5271180104767335]}
+Best MSE score is 3.546878488138988
+Average MSE result for this generation: 15.676942822554073
+Best solution index is 5
