@@ -6,6 +6,13 @@ dataset.xlsx- supplementary information from [Entchev et al., 2015](https://elif
 
 Script requires sympy v. 1.1.1, numpy 1.15.4, pandas 0.23.0, matplotlib 2.2.2 and scipy 1.1.0./ Python v.3.6.8
 
+## Results
+Integration of both food and temperature reveals the following model.
+![](images/Final_model.png)
+
+Most notably, it shows temperature dependency of daf-7 activity in ASI, which is consistent with previous [analytic work](https://www.biorxiv.org/content/10.1101/815373v1.full). This suggests that robustness of C. elegans food-sensing mechanisms could be mediated via ASI.
+
+
 ## Updates
 **21.02.2020**
 * Added a random agent to genetic algorithm, so that the model doesn't get stuck in the local minima.
