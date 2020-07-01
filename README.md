@@ -14,6 +14,9 @@ Most notably, it shows temperature dependency of daf-7 activity in ASI, which is
 
 
 ## Updates
+**01.07.2020**
+* Given that temperature and food are multiplier of the function, their arrowheads are changed.
+
 **21.02.2020**
 * Added a random agent to genetic algorithm, so that the model doesn't get stuck in the local minima.
 
